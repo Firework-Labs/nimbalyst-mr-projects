@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mr. Projects — screenshot harness</title>
+<script>
+  // Set as early as possible (before paint) so the rail/settings toggle below
+  // never flashes the wrong view. harness.tsx reads the same query params.
+  document.documentElement.dataset.shot = new URLSearchParams(location.search).get('shot') === 'settings' ? 'settings' : 'rail';
+</script>
+<style>
+  /*
+   * A hand-built replica of Nimbalyst's own window chrome: class names,
+   * nesting and geometry are taken from docs/nimbalyst-internals.md and DOM
+   * samples taken with a probe extension. Everything below `#harness-host-root`'s portcs (the
+   * rail, the poster dock, the gutter button, the settings page) is real
+   * Mr. Projects code from src/, not reproduced here.
+   *
+   * All chrome colors come from var(--nim-*) / var(--terminal-*). Baseline
+   * values below are Nimbalyst's own light-theme defaults (report.json);
+   * the harness's stub of the Mr. Themes bridge overwrites them at runtime
+   * to match the requested preset (?theme=), exactly like the real applier.
+   */
+  :root {
+    --nim-bg: #ffffff;
+    --nim-bg-secondary: #f9fafb;
+    --nim-bg-tertiary: #f3f4f6;
+    --nim-bg-hover: rgba(0, 0, 0, 0.05);
+    --nim-bg-selected: rgba(59, 130, 246, 0.1);
+    --nim-bg-active: rgba(59, 130, 246, 0.2);
+    --nim-text: #111827;
+    --nim-text-muted: #6b7280;
+    --nim-text-faint: #9ca3af;
+    --nim-text-disabled: #d1d5db;
+    --nim-border: #e5e7eb;
+    --nim-border-focus: #3b82f6;
+    --nim-primary: #3b82f6;
+    --nim-primary-hover: #2563eb;
+    --nim-on-primary: #ffffff;
+    --nim-link: rgb(33, 111, 219);
+    --nim-link-hover: rgb(33, 111, 219);
+    --nim-success: #10b981;
+    --nim-warning: #f59e0b;
+    --nim-error: #ef4444;
+    --nim-info: #3b82f6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: var(--nim-bg-secondary); }
+  body {
+    font-family: -apple-system, 'SF Pro Text', Inter, system-ui, sans-serif;
+    color: var(--nim-text);
+    overflow: hidden;
+  }
+
+  /* ---- Window shell (1024x740 CSS px; see screenshots/README.md) ---- */
+  #app { width: 1024px; height: 740px; display: flex; flex-direction: column; background: var(--nim-bg); overflow: hidden; }
+
+  .window-top-bar { height: 36px; flex: none; display: flex; align-items: center; justify-content: center; position: relative; background: var(--nim-bg-secondary); border-bottom: 1px solid var(--nim-border); -webkit-app-region: drag; }
+  .window-top-bar__dots { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px; }
+  .window-top-bar__dots span { width: 11px; height: 11px; border-radius: 50%; display: block; background: var(--nim-border); }
+  .window-top-bar__workspace-name { font-size: 12px; font-weight: 600; color: var(--nim-text); }
+
+  [data-layout="workspace-row"] { display: flex; flex: 1; min-height: 0; }
+
+  /* Native project rail: present so RailEnhancer can mirror it, then hidden
+     by the extension's own injected CSS (nav.project-rail.pt-native-hidden). */
+  nav.project-rail { width: 56px; flex: none; background: var(--nim-bg-secondary); border-right: 1px solid var(--nim-border); }
+  .pt-rail-host { flex: none; }
+
+  .navigation-gutter { width: 48px; flex: none; background: var(--nim-bg-secondary); border-right: 1px solid var(--nim-border); display: flex; flex-direction: column; align-items: center; padding: 8px 0; }
+  .nav-section { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 4px 6px; }
+  .nav-section.nav-quick-access { flex: 1; }
+  .nav-section.nav-settings { margin-top: auto; border-top: 1px solid var(--nim-border); padding-top: 8px; }
+  .nav-button { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 6px; background: transparent; color: var(--nim-text-faint); cursor: default; padding: 0; }
+  .nav-button.is-current { background: var(--nim-bg-selected); color: var(--nim-text); }
+  .nav-button svg { width: 18px; height: 18px; }
+
+  [data-layout="main-column-container"] { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+  /* ---- Normal workspace content (Agent mode): left column + transcript ---- */
+  .workspace-content { flex: 1; display: flex; min-height: 0; }
+  .resizable-panel-left { width: 248px; flex: none; border-right: 1px solid var(--nim-border); display: flex; }
+  .session-history { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--nim-bg-secondary); overflow: hidden; }
+  .workspace-color-accent { height: 3px; flex: none; background: var(--nim-primary); }
+  .workspace-summary-header { padding: 10px 12px 8px; border-bottom: 1px solid var(--nim-border); background: var(--nim-bg); }
+  .workspace-summary-title { font-size: 13px; font-weight: 700; color: var(--nim-text); }
+  .workspace-summary-sub { font-size: 11px; color: var(--nim-text-faint); margin-top: 2px; font-family: ui-monospace, Menlo, monospace; }
+  .workspace-section-label { font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--nim-text-faint); padding: 8px 12px 4px; }
+  .session-rows { flex: 1; overflow-y: auto; padding: 2px 6px 8px; }
+  .session-row { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; font-size: 12px; color: var(--nim-text-muted); }
+  .session-row.is-selected { background: var(--nim-bg-selected); color: var(--nim-text); }
+  .session-row-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--nim-success); flex: none; }
+  .session-row-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .session-row-time { color: var(--nim-text-faint); font-size: 10.5px; flex: none; }
+
+  .main-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--nim-bg); }
+  .main-editor-header { height: 44px; flex: none; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--nim-border); font-size: 13px; font-weight: 600; color: var(--nim-text); gap: 8px; }
+  .main-editor-header .sub { font-weight: 400; color: var(--nim-text-faint); }
+  .transcript { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+  .msg { max-width: 70%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+  .msg.user { align-self: flex-end; background: var(--nim-primary); color: var(--nim-on-primary); }
+  .msg.assistant { align-self: flex-start; background: var(--nim-bg-tertiary); color: var(--nim-text); border: 1px solid var(--nim-border); }
+
+  /* ---- Settings view replica ---- */
+  .settings-overlay { flex: 1; display: flex; min-height: 0; }
+  .settings-view { flex: 1; display: flex; flex-direction: column; background: var(--nim-bg); color: var(--nim-text); min-height: 0; }
+  .settings-view-header { height: 48px; flex: none; background: var(--nim-bg-secondary); border-bottom: 1px solid var(--nim-border); display: flex; align-items: center; padding: 0 18px; gap: 16px; }
+  .settings-view-title { font-size: 14px; font-weight: 700; margin: 0; }
+  .settings-scope-tabs { display: flex; background: var(--nim-bg-tertiary); padding: 3px; border-radius: 8px; }
+  .settings-scope-tab { border: none; background: transparent; color: var(--nim-text-muted); font: inherit; font-size: 11.5px; font-weight: 600; padding: 5px 14px; border-radius: 6px; cursor: default; }
+  .settings-scope-tab.active { background: var(--nim-bg); color: var(--nim-text); }
+  .settings-view-body { flex: 1; display: flex; min-height: 0; }
+  .settings-sidebar { width: 220px; flex: none; border-right: 1px solid var(--nim-border); overflow-y: auto; padding: 10px; }
+  .settings-sidebar-group { margin-bottom: 14px; }
+  .settings-sidebar-group-title { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--nim-text-faint); padding: 4px 8px; }
+  .settings-sidebar-item { display: flex; width: 100%; text-align: left; border: none; background: transparent; color: var(--nim-text-muted); font: inherit; font-size: 12.5px; padding: 6px 8px; border-radius: 6px; cursor: default; }
+  .settings-sidebar-item.selected { background: var(--nim-bg-selected); color: var(--nim-text); font-weight: 600; }
+  main.settings-view-main { flex: 1; overflow-y: auto; background: var(--nim-bg); }
+
+  html[data-shot="rail"] .settings-overlay { display: none; }
+  html[data-shot="settings"] .workspace-content { display: none; }
+</style>
+</head>
+<body>
+  <div id="app">
+    <div class="window-top-bar">
+      <div class="window-top-bar__dots"><span></span><span></span><span></span></div>
+      <div class="window-top-bar__workspace-name">demo-workspace</div>
+    </div>
+
+    <div data-layout="workspace-row">
+      <!-- Native project rail: Mr. Projects mirrors this, then hides it. -->
+      <nav class="project-rail" data-testid="project-rail" aria-label="Open projects">
+        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/atlas-api">
+          <button class="project-rail-item-main" aria-label="Switch to project Atlas API"></button>
+          <span class="project-rail-item-badge">1</span>
+          <button class="project-rail-item-close" aria-label="Close Atlas API"></button>
+        </div>
+        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/field-notes">
+          <button class="project-rail-item-main" aria-label="Switch to project Field Notes"></button>
+          <button class="project-rail-item-close" aria-label="Close Field Notes"></button>
+        </div>
+        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/orchard">
+          <button class="project-rail-item-main" aria-label="Switch to project Orchard"></button>
+          <button class="project-rail-item-close" aria-label="Close Orchard"></button>
+        </div>
+        <div class="project-rail-item is-active" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/lighthouse">
+          <button class="project-rail-item-main" aria-label="Switch to project Lighthouse" aria-current="true"></button>
+          <button class="project-rail-item-close" aria-label="Close Lighthouse"></button>
+        </div>
+        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/harbor-site">
+          <button class="project-rail-item-main" aria-label="Switch to project Harbor Site"></button>
+          <button class="project-rail-item-close" aria-label="Close Harbor Site"></button>
+        </div>
+        <div class="project-rail-divider" aria-hidden="true"></div>
+        <button class="project-rail-add" data-testid="project-rail-add" aria-label="Add project to rail">+</button>
+      </nav>
+
+      <div class="navigation-gutter">
+        <div class="nav-section nav-content-modes">
+          <button class="nav-button" data-mode="files" title="Files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg></button>
+          <button class="nav-button is-current" data-mode="agent" title="Agent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
+          <button class="nav-button" data-mode="tracker" title="Tracker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+          <button class="nav-button" data-mode="pr-review" title="PR Review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 9v6a3 3 0 0 0 3 3h6"/></svg></button>
+        </div>
+        <div class="nav-section nav-quick-access"></div>
+        <!-- GutterLink (real code) appends its own host div here. -->
+        <div class="nav-section nav-extension-panels"></div>
+        <div class="nav-section nav-settings">
+          <button class="nav-button" title="Voice mode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm-7-3a7 7 0 0 0 14 0M12 19v3"/></svg></button>
+          <button class="nav-button" title="Theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"/></svg></button>
+        </div>
+      </div>
+
+      <div data-layout="main-column-container">
+        <!-- shot=rail: Agent-mode left column + a fake transcript. Mr.
+             Projects docks its poster as the first child of .session-history. -->
+        <div class="workspace-content">
+          <div class="resizable-panel-left">
+            <div class="session-history">
+              <div class="workspace-color-accent"></div>
+              <div class="workspace-summary-header">
+                <div class="workspace-summary-title">Lighthouse</div>
+                <div class="workspace-summary-sub">/Users/demo/Projects/lighthouse</div>
+              </div>
+              <div class="workspace-section-label">Sessions</div>
+              <div class="session-rows">
+                <div class="session-row is-selected"><span class="session-row-dot"></span><span class="session-row-title">Add a dark mode toggle</span><span class="session-row-time">2h</span></div>
+                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Fix flaky signal timeout</span><span class="session-row-time">1d</span></div>
+                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Write onboarding copy</span><span class="session-row-time">2d</span></div>
+                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Review beacon schema</span><span class="session-row-time">4d</span></div>
+                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Set up nightly backups</span><span class="session-row-time">1w</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="main-editor">
+            <div class="main-editor-header">Lighthouse <span class="sub">— Agent</span></div>
+            <div class="transcript">
+              <div class="msg user">Add a dark mode toggle to the settings page.</div>
+              <div class="msg assistant">Added a toggle under Settings › Appearance and wired it to the theme store. Want it to remember the choice per device?</div>
+              <div class="msg user">Yes — persist it per device, thanks.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- shot=settings: Settings view replica. ProjectThemeSettings (real
+             code) mounts into #settings-main-mount. -->
+        <div class="settings-overlay">
+          <div class="settings-view" data-testid="settings-view">
+            <header class="settings-view-header">
+              <h1 class="settings-view-title">Settings</h1>
+              <div class="settings-scope-tabs">
+                <button class="settings-scope-tab" data-testid="settings-scope-application">Application</button>
+                <button class="settings-scope-tab" data-testid="settings-scope-account">Account</button>
+                <button class="settings-scope-tab active" data-testid="settings-scope-project">Project</button>
+              </div>
+            </header>
+            <div class="settings-view-body">
+              <aside class="settings-sidebar" data-testid="settings-sidebar">
+                <section class="settings-sidebar-group" data-testid="settings-group-project">
+                  <div class="settings-sidebar-group-title">Project</div>
+                  <button class="settings-sidebar-item" data-testid="settings-route-project-sharing">Sharing</button>
+                  <button class="settings-sidebar-item" data-testid="settings-route-project-agent-permissions">Agent Permissions</button>
+                  <button class="settings-sidebar-item" data-testid="settings-route-project-trackers">Trackers</button>
+                  <button class="settings-sidebar-item" data-testid="settings-route-project-ai-providers">AI Providers</button>
+                  <button class="settings-sidebar-item" data-testid="settings-route-project-mcp-servers">MCP Servers</button>
+                  <button class="settings-sidebar-item" data-testid="settings-route-project-github">GitHub</button>
+                  <button class="settings-sidebar-item" data-testid="settings-route-project-extensions">Extensions</button>
+                </section>
+                <section class="settings-sidebar-group" data-testid="settings-group-extensions">
+                  <div class="settings-sidebar-group-title">Extensions</div>
+                  <button class="settings-sidebar-item selected" data-testid="settings-route-ext:com.fireworklabs.project-theme:project-theme">Mr. Projects</button>
+                </section>
+              </aside>
+              <main class="settings-view-main" data-testid="settings-view-main">
+                <div id="settings-main-mount"></div>
+              </main>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mr. Projects' real host components (RailEnhancer, PosterDock,
+       GutterLink) mount here; they portal their actual DOM into the native
+       rail's host slot, the left column, and the gutter's extension-panels
+       section respectively, so this node itself stays empty/invisible. -->
+  <div id="harness-host-root"></div>
+
+  <script src="./dist/harness.js"></script>
+</body>
+</html>

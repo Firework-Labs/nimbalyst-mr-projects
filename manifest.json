@@ -1,0 +1,81 @@
+{
+  "id": "com.fireworklabs.project-theme",
+  "name": "Mr. Projects",
+  "version": "0.5.1",
+  "description": "Uniquify project spaces–designed to work with Mr. Themes. A per-project theme, a richer left rail with icons, names, drag-and-drop order and dividers, and a project poster banner docked in the left column with an optional Sandboxed chip and an Open in Finder button.",
+  "author": "Firework Labs",
+  "main": "dist/index.js",
+  "apiVersion": "1.0.0",
+  "permissions": {
+    "filesystem": true
+  },
+  "contributions": {
+    "hostComponents": ["RailEnhancer", "PosterDock", "GutterLink"],
+    "settingsRoutes": [
+      {
+        "id": "project-theme",
+        "scope": "project",
+        "label": "Mr. Projects",
+        "group": "Extensions",
+        "icon": "wallpaper",
+        "order": 50,
+        "component": "ProjectThemeSettings"
+      }
+    ],
+    "configuration": {
+      "title": "Mr. Projects",
+      "properties": {
+        "wideRail": {
+          "type": "boolean",
+          "default": false,
+          "description": "Replace the left project rail with a wider one showing project icons and short names.",
+          "scope": "user"
+        },
+        "projectLooks": {
+          "type": "object",
+          "description": "Cache of each project's look (theme, icon, tile, poster) keyed by project path, so the rail can paint projects that are not open. Managed automatically.",
+          "scope": "user"
+        },
+        "railLayout": {
+          "type": "array",
+          "default": [],
+          "description": "Order of projects in the rail plus any dividers (rules and text labels). Managed from the rail itself.",
+          "scope": "user"
+        },
+        "customPalettes": {
+          "type": "array",
+          "default": [],
+          "description": "Poster palettes you saved (name plus primary, accent, and text colors), offered next to the built-in ones. Managed from Project Settings › Project Theme.",
+          "scope": "user"
+        }
+      }
+    }
+  },
+  "marketplace": {
+    "changelog": "0.5.1: Deleting a rail rule or heading now deletes it instead of moving it to the bottom.\n0.5.0: Renamed from Custom Project Themes; new gutter icon and help tooltip; gear on the docked poster opens the settings.\n0.4.x: Three-color solid poster palettes with saved palettes; two-line short-name overlay; custom gutter icon.",
+    "categories": ["developer-tools"],
+    "tags": ["theme", "projects", "workspace", "poster", "left-rail", "sidebar", "organization", "per-project"],
+    "icon": "wallpaper",
+    "tagline": "Uniquify project spaces–designed to work with Mr. Themes",
+    "longDescription": "Make every project look like itself. Mr. Projects replaces the project rail with one that shows each project's icon and name, lets you drag projects into your own order, and adds rules and headings to group them. Each project gets a poster: a 16:9 banner at the top of the left column, built from a shape or one of 22 Hero Patterns in a three-color palette, or your own image, with its short name on top. Optional extras per project: a Sandboxed chip and an Open in Finder button. With Mr. Themes installed, each project also gets its own color theme, applied whenever you switch to it. A project's look is saved in .nimbalyst/project-theme.json, so it travels with the repository.\n\nHeads-up: Mr. Projects relies on Nimbalyst internals that are not part of the extension SDK. It hides Nimbalyst's project rail and shows its own (Nimbalyst's hidden buttons still do every switch, close and add), inserts the poster at the top of the left column, and adds a gutter button. Open in Finder and the settings shortcuts (gutter button, poster gear) call Nimbalyst's internal app bridge, window.electronAPI, which extensions are not documented to use. A Nimbalyst update can make the rail, poster or buttons disappear or look wrong until Mr. Projects is updated; disabling or uninstalling it brings back Nimbalyst's own rail.",
+    "screenshots": [
+      {
+        "alt": "The Mr. Projects rail with project posters, names and a heading, and the active project's poster banner at the top of the left column",
+        "src": "screenshots/com.fireworklabs.project-theme-0-dark.png",
+        "srcLight": "screenshots/com.fireworklabs.project-theme-0-light.png"
+      },
+      {
+        "alt": "Project Settings › Mr. Projects: theme, left rail and poster settings with palettes",
+        "src": "screenshots/com.fireworklabs.project-theme-1-dark.png",
+        "srcLight": "screenshots/com.fireworklabs.project-theme-1-light.png"
+      }
+    ],
+    "highlights": [
+      "Pick a theme per project; it switches as you switch projects",
+      "Wide left rail with icons, two-line names, drag-and-drop order, rules and text dividers",
+      "Poster banner docked in the left column: shapes, Hero Patterns, or your own image, with a Sandboxed chip, an Open in Finder button, and a gear that opens the settings",
+      "A gutter icon that jumps straight to the Mr. Projects settings",
+      "Settings travel with the project in .nimbalyst/project-theme.json"
+    ]
+  }
+}

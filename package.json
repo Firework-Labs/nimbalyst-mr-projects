@@ -1,0 +1,22 @@
+{
+  "name": "com.fireworklabs.project-theme",
+  "version": "0.5.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "test": "esbuild --bundle --platform=node --format=esm --external:@nimbalyst/extension-sdk --log-level=warning tests/model.test.ts --outfile=/tmp/mrprojects-model.test.mjs && node /tmp/mrprojects-model.test.mjs",
+    "screenshots:build": "esbuild --bundle --platform=browser --format=iife --jsx=automatic --jsx-import-source=react --define:process.env.NODE_ENV=\\\"production\\\" --log-level=warning screenshots/harness/harness.tsx --outfile=screenshots/harness/dist/harness.js"
+  },
+  "dependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@nimbalyst/extension-sdk": "^0.5.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.3.7",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.0.0",
+    "vite": "^7.1.12"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "themeId": "grove-dark-juicy",
+  "shortName": "Sandbox",
+  "icon": {
+    "kind": "poster"
+  },
+  "tile": {
+    "kind": "gradient",
+    "from": "#1e293b",
+    "to": "#ff5a36",
+    "angle": 135
+  },
+  "poster": {
+    "show": true,
+    "source": "generated",
+    "file": ".nimbalyst/poster.svg",
+    "shape": "diagonal",
+    "palette": {
+      "primary": "#1e293b",
+      "accent": "#10b981",
+      "text": "#ffffff"
+    },
+    "pattern": {
+      "id": "topography",
+      "scale": 3,
+      "opacity": 1
+    },
+    "title": {
+      "size": "L"
+    },
+    "sandboxed": false,
+    "openFolderButton": true
+  }
+}
