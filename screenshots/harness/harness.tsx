@@ -47,45 +47,61 @@ interface DemoProject {
   look: ProjectLook;
 }
 
+const photoPoster = (primary: string, accent: string) =>
+  ({
+    show: true,
+    source: 'generated',
+    shape: 'wave',
+    palette: { primary, accent, text: '#ffffff' },
+    pattern: { id: 'topography', scale: 1, opacity: 0.35 },
+    title: { size: 'M' },
+    sandboxed: false,
+    openFolderButton: false,
+  }) as const;
+
+// Rail order: Clients (initials, blues), Team (poster thumbnails, greens and
+// yellows), Home (photo tiles). Field Notes is the active project.
 const demoProjects: DemoProject[] = [
   {
     path: `${DEMO_ROOT}/atlas-api`,
     name: 'Atlas API',
-    badge: '1',
     look: makeLook({
       themeId: null,
       shortName: 'Atlas API',
       icon: { kind: 'initials' },
-      tile: { kind: 'gradient', from: '#0f172a', to: '#38bdf8', angle: 135 },
-      poster: {
-        show: true,
-        source: 'generated',
-        shape: 'wave',
-        palette: { primary: '#6b7280', accent: '#0ea5e9', text: '#ffffff' },
-        pattern: { id: 'topography', scale: 1, opacity: 0.35 },
-        title: { size: 'L' },
-        sandboxed: false,
-        openFolderButton: false,
-      },
+      tile: { kind: 'gradient', from: '#1d4ed8', to: '#60a5fa', angle: 135 },
+      poster: { ...photoPoster('#1d4ed8', '#60a5fa'), title: { size: 'L' } },
+    }),
+  },
+  {
+    path: `${DEMO_ROOT}/bluewater`,
+    name: 'Bluewater',
+    look: makeLook({
+      themeId: null,
+      shortName: 'Bluewater',
+      icon: { kind: 'initials' },
+      tile: { kind: 'gradient', from: '#0284c7', to: '#7dd3fc', angle: 135 },
+      poster: photoPoster('#0284c7', '#7dd3fc'),
     }),
   },
   {
     path: `${DEMO_ROOT}/field-notes`,
     name: 'Field Notes',
+    active: true,
     look: makeLook({
-      themeId: 'grove-light-subtle',
+      themeId: THEME_ID,
       shortName: 'Field Notes',
       icon: { kind: 'poster' },
-      tile: { kind: 'solid', color: '#2f7d4f' },
+      tile: { kind: 'solid', color: '#facc15' },
       poster: {
         show: true,
-        source: 'pattern',
+        source: 'generated',
         shape: 'wave',
-        palette: { primary: '#fbf7f0', accent: '#2f7d4f', text: '#ffffff' },
+        palette: { primary: '#fde047', accent: '#22c55e', text: '#14532d' },
         pattern: { id: 'leaf', scale: 1.2, opacity: 0.4 },
-        title: { size: 'M' },
-        sandboxed: false,
-        openFolderButton: false,
+        title: { size: 'L' },
+        sandboxed: true,
+        openFolderButton: true,
       },
     }),
   },
@@ -95,65 +111,67 @@ const demoProjects: DemoProject[] = [
     look: makeLook({
       themeId: null,
       shortName: 'Orchard',
-      icon: { kind: 'initials' },
-      tile: { kind: 'solid', color: '#10b981' },
-      poster: {
-        show: true,
-        source: 'generated',
-        shape: 'arc',
-        palette: { primary: '#1e293b', accent: '#10b981', text: '#ffffff' },
-        pattern: { id: 'topography', scale: 1, opacity: 0.35 },
-        title: { size: 'M' },
-        sandboxed: false,
-        openFolderButton: false,
-      },
-    }),
-  },
-  {
-    path: `${DEMO_ROOT}/lighthouse`,
-    name: 'Lighthouse',
-    active: true,
-    look: makeLook({
-      themeId: THEME_ID,
-      shortName: 'Lighthouse',
       icon: { kind: 'poster' },
-      tile: { kind: 'gradient', from: '#0f172a', to: '#38bdf8', angle: 135 },
-      poster: {
-        show: true,
-        source: 'pattern',
-        shape: 'wave',
-        // Custom colors (not the built-in "Slate and sky" palette, whose text
-        // is #0f172a == its own primary -- unreadable against a pattern on
-        // that base). White overlay text keeps the short-name legible.
-        palette: { primary: '#0f172a', accent: '#38bdf8', text: '#ffffff' },
-        pattern: { id: 'circuitBoard', scale: 0.9, opacity: 0.3 },
-        title: { size: 'L' },
-        sandboxed: true,
-        openFolderButton: true,
-      },
-    }),
-  },
-  {
-    path: `${DEMO_ROOT}/harbor-site`,
-    name: 'Harbor Site',
-    look: makeLook({
-      themeId: 'lagoon-light-pigment',
-      shortName: 'Harbor Site',
-      icon: { kind: 'image', file: '.nimbalyst/icon.png' }, // no real file: falls back to initials (onError)
-      tile: { kind: 'gradient', from: '#f97316', to: '#0c0a09', angle: 135 },
+      tile: { kind: 'solid', color: '#a3e635' },
       poster: {
         show: true,
         source: 'generated',
-        shape: 'steps',
-        palette: { primary: '#f97316', accent: '#0c0a09', text: '#ffffff' },
-        pattern: { id: 'topography', scale: 1, opacity: 0.35 },
+        shape: 'diagonal',
+        palette: { primary: '#a3e635', accent: '#facc15', text: '#14532d' },
+        pattern: { id: 'leaf', scale: 1, opacity: 0.55 },
         title: { size: 'M' },
         sandboxed: false,
         openFolderButton: false,
       },
+    }),
+  },
+  {
+    path: `${DEMO_ROOT}/pink-house`,
+    name: 'Pink House',
+    look: makeLook({
+      themeId: null,
+      shortName: 'Pink House',
+      icon: { kind: 'image', file: 'cover.jpg' }, // photo tile; the harness maps the file:// URL to fixtures/photos
+      tile: { kind: 'solid', color: '#f9a8d4' },
+      poster: photoPoster('#f9a8d4', '#38bdf8'),
+    }),
+  },
+  {
+    path: `${DEMO_ROOT}/flamingo`,
+    name: 'Flamingo',
+    look: makeLook({
+      themeId: null,
+      shortName: 'Flamingo',
+      icon: { kind: 'image', file: 'cover.jpg' },
+      tile: { kind: 'solid', color: '#fb7185' },
+      poster: photoPoster('#fb7185', '#7dd3fc'),
     }),
   },
 ];
+
+/* Photo tiles: in the real app the tile <img> loads file:///<project>/cover.jpg.
+   A page served over nim-preview:// cannot read file://, so the harness
+   redirects those two URLs (and only those) to the bundled photo fixtures.
+   Harness-only; nothing in ../../src changes. */
+const PHOTO_URLS: Record<string, string> = {
+  [`file://${encodeURI(`${DEMO_ROOT}/pink-house/cover.jpg`)}`]: './fixtures/photos/pink-house.jpg',
+  [`file://${encodeURI(`${DEMO_ROOT}/flamingo/cover.jpg`)}`]: './fixtures/photos/flamingo.jpg',
+};
+const nativeSetAttribute = Element.prototype.setAttribute;
+Element.prototype.setAttribute = function (name: string, value: string) {
+  if (this instanceof HTMLImageElement && name === 'src' && value in PHOTO_URLS) value = PHOTO_URLS[value];
+  return nativeSetAttribute.call(this, name, value);
+};
+// React may also assign img.src as a property; cover that path too.
+const srcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+if (srcDescriptor?.set) {
+  Object.defineProperty(HTMLImageElement.prototype, 'src', {
+    ...srcDescriptor,
+    set(value: string) {
+      srcDescriptor.set!.call(this, value in PHOTO_URLS ? PHOTO_URLS[value] : value);
+    },
+  });
+}
 
 const ACTIVE = demoProjects.find((p) => p.active) ?? demoProjects[0];
 
@@ -170,13 +188,15 @@ const projectLooksCfg: Record<string, ProjectLook> = {};
 for (const p of demoProjects) projectLooksCfg[p.path] = p.look;
 
 const railLayout: RailEntry[] = [
+  { kind: 'text', id: 'demo-text-clients', label: 'Clients' },
   { kind: 'project', path: demoProjects[0].path },
   { kind: 'project', path: demoProjects[1].path },
-  { kind: 'rule', id: 'demo-rule-1' },
-  { kind: 'text', id: 'demo-text-1', label: 'Clients' },
+  { kind: 'text', id: 'demo-text-team', label: 'Team' },
   { kind: 'project', path: demoProjects[2].path },
   { kind: 'project', path: demoProjects[3].path },
+  { kind: 'text', id: 'demo-text-home', label: 'Home' },
   { kind: 'project', path: demoProjects[4].path },
+  { kind: 'project', path: demoProjects[5].path },
 ];
 
 const configStore: Record<string, unknown> = {
@@ -298,6 +318,32 @@ const themeEditorBridge = {
   },
 };
 (window as unknown as { __nimbalystThemeEditor: unknown }).__nimbalystThemeEditor = themeEditorBridge;
+
+/* Harness-only deviation: the real extension draws tiles of projects that are
+   not the active one at 40% opacity (full on hover). At that strength colors
+   and photos wash out in a still image, so the screenshots show those tiles at
+   full opacity, as if hovered. Documented in README.md. */
+const harnessStyle = document.createElement('style');
+harnessStyle.textContent = '.pt-item:not(.active) .pt-tile { opacity: 1 !important; }';
+document.head.appendChild(harnessStyle);
+
+/* Native rail (the replica's <nav class="project-rail">) and the active
+   project's header texts, generated from demoProjects so they never drift. */
+const nativeNav = document.querySelector('nav.project-rail');
+const nativeDivider = nativeNav?.querySelector('.project-rail-divider');
+for (const p of demoProjects) {
+  const item = document.createElement('div');
+  item.className = `project-rail-item${p.active ? ' is-active' : ''}`;
+  item.dataset.testid = 'project-rail-item';
+  item.dataset.projectPath = p.path;
+  item.innerHTML =
+    `<button class="project-rail-item-main" aria-label="Switch to project ${p.name}"${p.active ? ' aria-current="true"' : ''}></button>` +
+    `<button class="project-rail-item-close" aria-label="Close ${p.name}"></button>`;
+  nativeNav?.insertBefore(item, nativeDivider ?? null);
+}
+document.getElementById('ws-title')!.textContent = ACTIVE.name;
+document.getElementById('ws-sub')!.textContent = ACTIVE.path;
+document.getElementById('ws-header')!.textContent = ACTIVE.name;
 
 /* ------------------------------------------------------------------ */
 /* Activate the real extension, mount its real host components         */

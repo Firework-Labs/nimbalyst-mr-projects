@@ -6,6 +6,10 @@ Mr. Projects is MIT-licensed (see `LICENSE`). It includes material from the foll
 
 `src/heroPatterns.ts` contains 22 SVG patterns from [Hero Patterns](https://heropatterns.com) by Steve Schoger, licensed under [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). The patterns were recolored at render time (color and opacity are applied through a wrapping `<g>`); the path data is unchanged.
 
+## Screenshot photos
+
+The two photos used as project icons in the screenshots (`screenshots/harness/fixtures/photos/`) are from Unsplash, under the [Unsplash License](https://unsplash.com/license): the pink house by [Paul Bill](https://unsplash.com/photos/a-pink-and-blue-house-with-a-white-balcony-w0xNq-jWl6k) and the flamingo by [Edrick Krozendijk](https://unsplash.com/photos/pink-flamingo-in-close-up-photography-25JxltstHSc). They are not part of the extension.
+
 ## hero-patterns (npm package)
 
 The pattern SVGs were extracted from the [`hero-patterns`](https://www.npmjs.com/package/hero-patterns) npm package by Alec Lomas ([lowmess/hero-patterns](https://github.com/lowmess/hero-patterns)), licensed under the MIT License:

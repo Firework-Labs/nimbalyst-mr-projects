@@ -1,10 +1,15 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/logo-white.svg">
+  <img alt="Mr. Projects logo" src="docs/images/logo-black.svg" width="96">
+</picture>
+
 # Mr. Projects
 
 Make each project in [Nimbalyst](https://nimbalyst.com) look like itself: a project rail with names and icons, a poster at the top of the sidebar, and, with [Mr. Themes](https://github.com/Firework-Labs/nimbalyst-mr-themes), its own color theme.
 
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="screenshots/com.fireworklabs.project-theme-0-light.png">
-  <img alt="The Mr. Projects rail with posters, names and a heading, and the active project's poster at the top of the sidebar" src="screenshots/com.fireworklabs.project-theme-0-dark.png">
+  <img alt="The Mr. Projects rail grouped under Clients, Team and Home, with initials, poster and photo tiles, and the active project's poster at the top of the sidebar" src="screenshots/com.fireworklabs.project-theme-0-dark.png">
 </picture>
 
 - Drag projects into your own order and group them with lines and headings

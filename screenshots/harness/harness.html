@@ -11,8 +11,8 @@
 <style>
   /*
    * A hand-built replica of Nimbalyst's own window chrome: class names,
-   * nesting and geometry are taken from docs/nimbalyst-internals.md and DOM
-   * samples taken with a probe extension. Everything below `#harness-host-root`'s portcs (the
+   * nesting and geometry are taken from DOM samples of the running app.
+   * Everything Mr. Projects portals out of `#harness-host-root` (the
    * rail, the poster dock, the gutter button, the settings page) is real
    * Mr. Projects code from src/, not reproduced here.
    *
@@ -131,27 +131,7 @@
     <div data-layout="workspace-row">
       <!-- Native project rail: Mr. Projects mirrors this, then hides it. -->
       <nav class="project-rail" data-testid="project-rail" aria-label="Open projects">
-        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/atlas-api">
-          <button class="project-rail-item-main" aria-label="Switch to project Atlas API"></button>
-          <span class="project-rail-item-badge">1</span>
-          <button class="project-rail-item-close" aria-label="Close Atlas API"></button>
-        </div>
-        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/field-notes">
-          <button class="project-rail-item-main" aria-label="Switch to project Field Notes"></button>
-          <button class="project-rail-item-close" aria-label="Close Field Notes"></button>
-        </div>
-        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/orchard">
-          <button class="project-rail-item-main" aria-label="Switch to project Orchard"></button>
-          <button class="project-rail-item-close" aria-label="Close Orchard"></button>
-        </div>
-        <div class="project-rail-item is-active" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/lighthouse">
-          <button class="project-rail-item-main" aria-label="Switch to project Lighthouse" aria-current="true"></button>
-          <button class="project-rail-item-close" aria-label="Close Lighthouse"></button>
-        </div>
-        <div class="project-rail-item" data-testid="project-rail-item" data-project-path="/Users/demo/Projects/harbor-site">
-          <button class="project-rail-item-main" aria-label="Switch to project Harbor Site"></button>
-          <button class="project-rail-item-close" aria-label="Close Harbor Site"></button>
-        </div>
+        <!-- Native rail items are generated from demoProjects by harness.tsx (before the extension activates). -->
         <div class="project-rail-divider" aria-hidden="true"></div>
         <button class="project-rail-add" data-testid="project-rail-add" aria-label="Add project to rail">+</button>
       </nav>
@@ -180,21 +160,21 @@
             <div class="session-history">
               <div class="workspace-color-accent"></div>
               <div class="workspace-summary-header">
-                <div class="workspace-summary-title">Lighthouse</div>
-                <div class="workspace-summary-sub">/Users/demo/Projects/lighthouse</div>
+                <div class="workspace-summary-title" id="ws-title">Field Notes</div>
+                <div class="workspace-summary-sub" id="ws-sub">/Users/demo/Projects/field-notes</div>
               </div>
               <div class="workspace-section-label">Sessions</div>
               <div class="session-rows">
                 <div class="session-row is-selected"><span class="session-row-dot"></span><span class="session-row-title">Add a dark mode toggle</span><span class="session-row-time">2h</span></div>
-                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Fix flaky signal timeout</span><span class="session-row-time">1d</span></div>
+                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Fix flaky sync timeout</span><span class="session-row-time">1d</span></div>
                 <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Write onboarding copy</span><span class="session-row-time">2d</span></div>
-                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Review beacon schema</span><span class="session-row-time">4d</span></div>
+                <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Review note schema</span><span class="session-row-time">4d</span></div>
                 <div class="session-row"><span class="session-row-dot"></span><span class="session-row-title">Set up nightly backups</span><span class="session-row-time">1w</span></div>
               </div>
             </div>
           </div>
           <div class="main-editor">
-            <div class="main-editor-header">Lighthouse <span class="sub">— Agent</span></div>
+            <div class="main-editor-header"><span id="ws-header">Field Notes</span> <span class="sub">— Agent</span></div>
             <div class="transcript">
               <div class="msg user">Add a dark mode toggle to the settings page.</div>
               <div class="msg assistant">Added a toggle under Settings › Appearance and wired it to the theme store. Want it to remember the choice per device?</div>
@@ -248,6 +228,7 @@
        section respectively, so this node itself stays empty/invisible. -->
   <div id="harness-host-root"></div>
 
-  <script src="./dist/harness.js"></script>
+  <!-- Cache-busted so the preview browser never serves a stale bundle after a rebuild. -->
+  <script>document.write('<script src="./dist/harness.js?t=' + Date.now() + '"><\/script>');</script>
 </body>
 </html>
