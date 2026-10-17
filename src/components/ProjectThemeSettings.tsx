@@ -3,7 +3,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import type { SettingsPanelProps } from '@nimbalyst/extension-sdk';
-import { HERO_PATTERNS, PALETTES, SHAPES, fileUrl, posterDataUri, posterSvg, samePalette, shapeName } from '../poster';
+import { HERO_PATTERNS, PALETTES, SHAPES, fileUrl, posterDataUri, posterSvg, resolveProjectPath, samePalette, shapeName } from '../poster';
 import { heroPatternById } from '../heroPatterns';
 import {
   deletePalette, getBridge, getExtensionContext, getLook, getRailLayout, getSavedPalettes, getWideRail, openFolderLabel, refreshFromDisk, savePalette, setLookInCache, setRailLayout, setWideRail, subscribe,
@@ -135,7 +135,7 @@ function SettingsBody({ path }: { path: string }) {
         const rel = imagePath.trim();
         if (!rel) throw new Error('Choose an image file inside the project first.');
         const fs = getExtensionContext()?.services.filesystem;
-        const abs = rel.startsWith('/') ? rel : `${path}/${rel}`;
+        const abs = resolveProjectPath(path, rel);
         if (fs && !(await fs.fileExists(abs))) throw new Error(`No file at ${rel}`);
         next.poster = { ...next.poster, file: rel };
       }
