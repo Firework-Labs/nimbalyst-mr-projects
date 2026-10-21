@@ -182,9 +182,26 @@ export function posterAccent(p: Palette): string {
   return p.accent;
 }
 
+/** True for POSIX (`/x`), Windows drive (`C:\x`, `C:/x`) and UNC (`\\server\share`) paths. */
+export function isAbsolutePath(p: string): boolean {
+  return p.startsWith('/') || p.startsWith('\\\\') || /^[A-Za-z]:[\\/]/.test(p);
+}
+
+/** Join a project path and a look-file path (relative or absolute) into an absolute path with forward slashes. */
+export function resolveProjectPath(projectPath: string, file: string): string {
+  const abs = isAbsolutePath(file) ? file : `${projectPath.replace(/[\\/]+$/, '')}/${file}`;
+  return abs.replace(/\\/g, '/');
+}
+
+/**
+ * file:// URL for a project file. Handles POSIX paths, Windows drive-letter paths
+ * (`H:\proj\x.svg` -> `file:///H:/proj/x.svg`) and UNC paths (`\\srv\share\x` -> `file://srv/share/x`).
+ * A drive-letter path needs a leading slash, otherwise Chromium reads the drive letter as the URL host.
+ */
 export function fileUrl(projectPath: string, relative: string): string {
-  const abs = relative.startsWith('/') ? relative : `${projectPath.replace(/\/+$/, '')}/${relative}`;
-  return `file://${encodeURI(abs)}`;
+  const abs = resolveProjectPath(projectPath, relative);
+  if (abs.startsWith('//')) return `file:${encodeURI(abs)}`;
+  return `file://${encodeURI(abs.startsWith('/') ? abs : `/${abs}`)}`;
 }
 
 /** Image source for a look's poster, or null when it has none. */

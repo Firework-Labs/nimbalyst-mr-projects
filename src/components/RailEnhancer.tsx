@@ -66,17 +66,25 @@ function tileStyle(look: ProjectLook | null, item: RailItem): CSSProperties {
   return {};
 }
 
-function TileContent({ look, item }: { look: ProjectLook | null; item: RailItem }) {
-  const [broken, setBroken] = useState(false);
+/** Image for a tile, or null when it should show initials. */
+export function tileImageSrc(look: ProjectLook | null, projectPath: string): string | null {
   const icon = look?.icon ?? { kind: 'initials' as const };
-  const initials = <span>{initialsOf(item.name)}</span>;
-  if (broken) return initials;
-  if (icon.kind === 'image') return <img src={fileUrl(item.path, icon.file)} alt="" onError={() => setBroken(true)} draggable={false} />;
+  if (icon.kind === 'image') return icon.file ? fileUrl(projectPath, icon.file) : null;
   if (icon.kind === 'poster' && look) {
-    if (look.poster.source === 'generated' || look.poster.source === 'pattern') return <img src={posterDataUri(look.poster, { noTitle: true })} alt="" draggable={false} />;
-    if (look.poster.source === 'image' && look.poster.file) return <img src={fileUrl(item.path, look.poster.file)} alt="" onError={() => setBroken(true)} draggable={false} />;
+    if (look.poster.source === 'generated' || look.poster.source === 'pattern') return posterDataUri(look.poster, { noTitle: true });
+    if (look.poster.source === 'image' && look.poster.file) return fileUrl(projectPath, look.poster.file);
   }
-  return initials;
+  return null;
+}
+
+function TileContent({ look, item }: { look: ProjectLook | null; item: RailItem }) {
+  // Remember which src failed instead of a sticky boolean, so a corrected path in the
+  // look file (or a file that appears later) is retried without toggling the extension.
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
+  const src = tileImageSrc(look, item.path);
+  const initials = <span>{initialsOf(item.name)}</span>;
+  if (!src || src === brokenSrc) return initials;
+  return <img src={src} alt="" onError={() => setBrokenSrc(src)} draggable={false} />;
 }
 
 type Drop = { key: string; before: boolean } | null;
