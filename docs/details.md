@@ -2,7 +2,7 @@
 
 Everything the [README](../README.md) leaves out: features in full, the look file format, storage, the Nimbalyst internals Mr. Projects depends on, and how to build it.
 
-Extension id: `com.fireworklabs.project-theme` (unchanged from the "Custom Project Themes" days, so installs and saved configuration carry over) · version 0.5.1
+Extension id: `com.fireworklabs.project-theme` (unchanged from the "Custom Project Themes" days, so installs and saved configuration carry over) · version 0.5.2
 Depends on: [Mr. Themes](https://github.com/Firework-Labs/nimbalyst-mr-themes) (`com.fireworklabs.theme-editor`) for per-project themes. Without it, the rail and poster features still work and the theme picker shows an install hint.
 
 > **Heads-up: Mr. Projects relies on Nimbalyst internals that are not part of the extension SDK.** It hides Nimbalyst's project rail and shows its own (Nimbalyst's hidden buttons still do every switch, close and add), inserts the poster at the top of the left column, and adds a gutter button. **Open in Finder** and the **settings shortcuts** (gutter button, poster gear) call Nimbalyst's internal app bridge, `window.electronAPI`, which extensions are not documented to use. A Nimbalyst update can make the rail, poster or buttons disappear or look wrong until Mr. Projects is updated; disabling or uninstalling it brings back Nimbalyst's own rail. Details in [Host hooks outside the SDK](#host-hooks-outside-the-sdk). Last verified on Nimbalyst 0.77.5.
@@ -95,7 +95,7 @@ Source layout: `src/types.ts` (look model, rail layout, normalization with 0.2 f
 
 ## Known limitations
 
-- Images must live inside the project (no file picker; the extension API has no binary file copy). Images load through `file://` URLs.
+- Images must live inside the project (no file picker; the extension API has no binary file copy). Images load through `file://` URLs. Since 0.5.2 this is enforced: a look file travels with the project's repository, so its image paths may have been written by someone else. `projectRelativePath` in `src/poster.ts` refuses absolute paths outside the project, `..` escapes and Windows network-share paths (`\\server\share`, which would make the app contact that server as soon as a tile draws); such images are never loaded, and the settings page warns and refuses to save them. An absolute path inside the project still works and is saved back as a relative one. Symlinks inside the project are not resolved (the SDK has no way to), so a symlink can still point elsewhere.
 - Native rail features that are not mirrored: native tooltips and right-click menus.
 - The dock finds the left column by class name (`.workspace-sidebar`, `.session-history`, `.tracker-sidebar`), hides `.workspace-color-accent`, and the gutter button targets `.navigation-gutter .nav-extension-panels` (all observed on Nimbalyst 0.77.5). Re-verify after an upgrade.
 - Picking a native theme in Settings lifts the project theme until the next project switch (Mr. Themes steps aside by design).

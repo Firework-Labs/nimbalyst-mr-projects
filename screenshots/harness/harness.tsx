@@ -207,7 +207,7 @@ const configStore: Record<string, unknown> = {
 };
 
 const context = {
-  manifest: { id: 'com.fireworklabs.project-theme', name: 'Mr. Projects', version: '0.5.1' },
+  manifest: { id: 'com.fireworklabs.project-theme', name: 'Mr. Projects', version: '0.5.2' },
   extensionPath: '/fake/mr-projects',
   services: {
     filesystem: {

@@ -42,6 +42,7 @@ The screenshots are rendered from the extension's real code on a replica of the 
 
 **Changelog**
 
+> 0.5.2: Image tiles and image posters load on Windows; a rail tile picks up a corrected image path without a restart; image paths must stay inside the project folder.
 > 0.5.1: Deleting a rail rule or heading now deletes it instead of moving it to the bottom.
 > 0.5.0: Renamed from Custom Project Themes; new gutter icon and help tooltip; gear on the docked poster opens the settings.
 > 0.4.x: Three-color solid poster palettes with saved palettes; two-line short-name overlay; custom gutter icon.

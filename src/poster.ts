@@ -187,19 +187,54 @@ export function isAbsolutePath(p: string): boolean {
   return p.startsWith('/') || p.startsWith('\\\\') || /^[A-Za-z]:[\\/]/.test(p);
 }
 
-/** Join a project path and a look-file path (relative or absolute) into an absolute path with forward slashes. */
-export function resolveProjectPath(projectPath: string, file: string): string {
-  const abs = isAbsolutePath(file) ? file : `${projectPath.replace(/[\\/]+$/, '')}/${file}`;
-  return abs.replace(/\\/g, '/');
+const projectRoot = (projectPath: string): string => projectPath.replace(/\\/g, '/').replace(/\/+$/, '');
+
+/**
+ * A look-file image path as a clean path relative to the project (forward slashes), or null when
+ * it does not stay inside the project. Look files travel with a repository, so the path may have
+ * been written by someone else: an absolute path elsewhere or a `..` escape would let it load any
+ * file, and on Windows a `\\server\share` path makes the app contact that server as soon as the
+ * tile draws. An absolute path that points inside the project is accepted and made relative.
+ */
+export function projectRelativePath(projectPath: string, file: string): string | null {
+  const root = projectRoot(projectPath);
+  if (!root) return null;
+  let f = file.trim().replace(/\\/g, '/');
+  if (/^\/[A-Za-z]:\//.test(f)) f = f.slice(1); // `/H:/proj/x.svg`, the workaround from issue #1
+  if (isAbsolutePath(f)) {
+    // Windows paths compare case-insensitively; elsewhere a case mismatch just refuses the path.
+    const windows = /^([A-Za-z]:|\/\/)/.test(root);
+    const [a, b] = windows ? [f.toLowerCase(), root.toLowerCase()] : [f, root];
+    if (!a.startsWith(`${b}/`)) return null;
+    f = f.slice(root.length + 1);
+  }
+  const parts: string[] = [];
+  for (const seg of f.split('/')) {
+    if (seg === '' || seg === '.') continue;
+    if (seg === '..') {
+      if (!parts.length) return null;
+      parts.pop();
+    } else if (seg.includes(':')) return null; // `C:x` (drive-relative) or an NTFS stream
+    else parts.push(seg);
+  }
+  return parts.length ? parts.join('/') : null;
+}
+
+/** Absolute path (forward slashes) of a look-file image inside the project, or null (see projectRelativePath). */
+export function projectFilePath(projectPath: string, file: string): string | null {
+  const rel = projectRelativePath(projectPath, file);
+  return rel === null ? null : `${projectRoot(projectPath)}/${rel}`;
 }
 
 /**
- * file:// URL for a project file. Handles POSIX paths, Windows drive-letter paths
- * (`H:\proj\x.svg` -> `file:///H:/proj/x.svg`) and UNC paths (`\\srv\share\x` -> `file://srv/share/x`).
- * A drive-letter path needs a leading slash, otherwise Chromium reads the drive letter as the URL host.
+ * file:// URL for an image inside the project, or null when the path leaves it. Handles POSIX
+ * projects, Windows drive-letter projects (`H:\proj` + `x.svg` -> `file:///H:/proj/x.svg`) and projects
+ * on a UNC share (`\\srv\share\proj` -> `file://srv/share/proj/x.svg`). A drive-letter path needs a
+ * leading slash, otherwise Chromium reads the drive letter as the URL host.
  */
-export function fileUrl(projectPath: string, relative: string): string {
-  const abs = resolveProjectPath(projectPath, relative);
+export function fileUrl(projectPath: string, file: string): string | null {
+  const abs = projectFilePath(projectPath, file);
+  if (abs === null) return null;
   if (abs.startsWith('//')) return `file:${encodeURI(abs)}`;
   return `file://${encodeURI(abs.startsWith('/') ? abs : `/${abs}`)}`;
 }

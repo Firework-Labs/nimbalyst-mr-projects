@@ -79,7 +79,7 @@ export function tileImageSrc(look: ProjectLook | null, projectPath: string): str
 
 function TileContent({ look, item }: { look: ProjectLook | null; item: RailItem }) {
   // Remember which src failed instead of a sticky boolean, so a corrected path in the
-  // look file (or a file that appears later) is retried without toggling the extension.
+  // look file is retried without toggling the extension. The same path is not retried.
   const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
   const src = tileImageSrc(look, item.path);
   const initials = <span>{initialsOf(item.name)}</span>;

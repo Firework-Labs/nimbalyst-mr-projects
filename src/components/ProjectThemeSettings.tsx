@@ -3,7 +3,7 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import type { SettingsPanelProps } from '@nimbalyst/extension-sdk';
-import { HERO_PATTERNS, PALETTES, SHAPES, fileUrl, posterDataUri, posterSvg, resolveProjectPath, samePalette, shapeName } from '../poster';
+import { HERO_PATTERNS, PALETTES, SHAPES, fileUrl, posterDataUri, posterSvg, projectFilePath, projectRelativePath, samePalette, shapeName } from '../poster';
 import { heroPatternById } from '../heroPatterns';
 import {
   deletePalette, getBridge, getExtensionContext, getLook, getRailLayout, getSavedPalettes, getWideRail, openFolderLabel, refreshFromDisk, savePalette, setLookInCache, setRailLayout, setWideRail, subscribe,
@@ -38,6 +38,15 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 const Faint = ({ children }: { children: string }) => <span style={{ color: 'var(--nim-text-faint)' }}>{children}</span>;
+
+const INSIDE_HINT = "Put the image in the project's .nimbalyst/ folder and enter a path such as .nimbalyst/icon.png.";
+
+/** Shown under an image path that leaves the project; such images are never loaded (see projectRelativePath). */
+const OutsideWarning = () => (
+  <div className="pt-hint" style={{ borderColor: 'var(--nim-error)', marginBottom: 8 }}>
+    This path is outside the project, so the image will not be shown. {INSIDE_HINT}
+  </div>
+);
 
 /** Palette swatch: primary left, accent right, "Aa" in the text color. */
 function PaletteSwatch({ p, on, title, onClick }: { p: Palette; on: boolean; title: string; onClick: () => void }) {
@@ -128,16 +137,23 @@ function SettingsBody({ path }: { path: string }) {
     setSaving(true);
     try {
       const next: ProjectLook = { ...look };
+      if (next.icon.kind === 'image' && next.icon.file.trim()) {
+        const rel = projectRelativePath(path, next.icon.file);
+        if (!rel) throw new Error(`The tile image ${next.icon.file.trim()} is outside the project. ${INSIDE_HINT}`);
+        next.icon = { kind: 'image', file: rel };
+      }
       if (next.poster.source === 'generated' || next.poster.source === 'pattern') {
         next.poster = { ...next.poster, file: POSTER_SVG_FILE };
         await writeProjectFile(path, POSTER_SVG_FILE, posterSvg(next.poster, { title: next.shortName || name, aspect: 'banner' }));
       } else {
-        const rel = imagePath.trim();
-        if (!rel) throw new Error('Choose an image file inside the project first.');
+        if (!imagePath.trim()) throw new Error('Choose an image file inside the project first.');
+        const rel = projectRelativePath(path, imagePath);
+        const abs = projectFilePath(path, imagePath);
+        if (!rel || !abs) throw new Error(`The poster image ${imagePath.trim()} is outside the project. ${INSIDE_HINT}`);
         const fs = getExtensionContext()?.services.filesystem;
-        const abs = resolveProjectPath(path, rel);
         if (fs && !(await fs.fileExists(abs))) throw new Error(`No file at ${rel}`);
         next.poster = { ...next.poster, file: rel };
+        setImagePath(rel);
       }
       await writeLookFile(path, next);
       await setLookInCache(path, next);
@@ -157,6 +173,9 @@ function SettingsBody({ path }: { path: string }) {
     () => (isGenerated ? posterDataUri(look.poster, { title: previewTitle, aspect: 'banner' }) : imagePath ? fileUrl(path, imagePath) : null),
     [look.poster, previewTitle, isGenerated, imagePath, path],
   );
+  const iconPreview = look.icon.kind === 'image' && look.icon.file ? fileUrl(path, look.icon.file) : null;
+  const iconOutside = look.icon.kind === 'image' && !!look.icon.file.trim() && !iconPreview;
+  const posterOutside = look.poster.source === 'image' && !!imagePath.trim() && !projectRelativePath(path, imagePath);
   const tile = look.tile;
   const currentTheme = look.themeId ? themes.find((t) => t.id === look.themeId) ?? null : null;
   const currentThemeLabel = look.themeId === null ? 'Global theme' : currentTheme?.name ?? look.themeId;
@@ -227,8 +246,8 @@ function SettingsBody({ path }: { path: string }) {
           <span className="pt-tileprev">
             <span style={{ width: 56, height: 56, borderRadius: 12, background: tileBg(), display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontWeight: 700, fontSize: 15, color: '#fff' }}>
               {look.icon.kind === 'poster' && isGenerated ? <img src={posterDataUri(look.poster, { noTitle: true })} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : look.icon.kind === 'poster' && imagePath ? <img src={fileUrl(path, imagePath)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : look.icon.kind === 'image' && look.icon.file ? <img src={fileUrl(path, look.icon.file)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : look.icon.kind === 'poster' && posterPreview ? <img src={posterPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : iconPreview ? <img src={iconPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : initialsOf(name)}
             </span>
             <span style={{ color: 'var(--nim-text-muted)', fontSize: 12 }}>{look.shortName || name}</span>
@@ -253,6 +272,7 @@ function SettingsBody({ path }: { path: string }) {
             {look.icon.kind === 'image' ? <input className="pt-input" style={{ width: 220 }} value={look.icon.file} placeholder=".nimbalyst/icon.png" onChange={(e) => update({ icon: { kind: 'image', file: e.target.value } })} /> : null}
           </span>
         </div>
+        {iconOutside ? <OutsideWarning /> : null}
         {look.icon.kind === 'initials' ? (
           <div className="pt-frow">
             <label>Tile color</label>
@@ -303,6 +323,7 @@ function SettingsBody({ path }: { path: string }) {
               <label>Image file in this project</label>
               <input className="pt-input" style={{ width: 280 }} value={imagePath} placeholder=".nimbalyst/poster.png" onChange={(e) => { setImagePath(e.target.value); setDirty(true); }} />
             </div>
+            {posterOutside ? <OutsideWarning /> : null}
             <div className="pt-hint">Drop a PNG, JPG, SVG, or WebP into the project's <code>.nimbalyst/</code> folder, then enter its path above. Wide images suit the banner. The file travels with the project.</div>
           </>
         ) : null}

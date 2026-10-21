@@ -1,7 +1,7 @@
 {
   "id": "com.fireworklabs.project-theme",
   "name": "Mr. Projects",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Uniquify project spaces–designed to work with Mr. Themes. A per-project theme, a richer left rail with icons, names, drag-and-drop order and dividers, and a project poster banner docked in the left column with an optional Sandboxed chip and an Open in Finder button.",
   "author": "Firework Labs",
   "main": "dist/index.js",
@@ -52,7 +52,7 @@
     }
   },
   "marketplace": {
-    "changelog": "0.5.1: Deleting a rail rule or heading now deletes it instead of moving it to the bottom.\n0.5.0: Renamed from Custom Project Themes; new gutter icon and help tooltip; gear on the docked poster opens the settings.\n0.4.x: Three-color solid poster palettes with saved palettes; two-line short-name overlay; custom gutter icon.",
+    "changelog": "0.5.2: Image tiles and image posters load on Windows; a rail tile picks up a corrected image path without a restart; image paths must stay inside the project folder.\n0.5.1:Deleting a rail rule or heading now deletes it instead of moving it to the bottom.\n0.5.0: Renamed from Custom Project Themes; new gutter icon and help tooltip; gear on the docked poster opens the settings.\n0.4.x: Three-color solid poster palettes with saved palettes; two-line short-name overlay; custom gutter icon.",
     "categories": ["developer-tools"],
     "tags": ["theme", "projects", "workspace", "poster", "left-rail", "sidebar", "organization", "per-project"],
     "icon": "wallpaper",

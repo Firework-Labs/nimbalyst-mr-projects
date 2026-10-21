@@ -10,7 +10,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { mergeRailLayout, normalizeLook, type RailEntry } from '../src/types';
-import { fileUrl, isAbsolutePath, posterSvg, resolveProjectPath, wrapTitle } from '../src/poster';
+import { fileUrl, isAbsolutePath, posterSvg, projectFilePath, projectRelativePath, wrapTitle } from '../src/poster';
 
 let n = 0;
 const ok = (m: string) => { n++; console.log('PASS', m); };
@@ -56,19 +56,36 @@ assert.deepEqual(wrapTitle('UX-review-checklist', 40, 352), ['UX-review-', 'chec
 assert.deepEqual(wrapTitle('Field Notes Q3 partner review board', 40, 352), ['Field Notes Q3', 'partner review…']); ok('short-name wrap');
 
 
-// ---- fileUrl: POSIX, Windows drive-letter and UNC paths all become URLs Chromium will load
+// ---- fileUrl: POSIX, Windows drive-letter and UNC projects all become URLs Chromium will load
 const WIN = 'H:' + String.fromCharCode(92) + 'AI-Workhub';             // H:\AI-Workhub
 const BS = String.fromCharCode(92);
-assert.equal(fileUrl('/Users/me/proj', '.nimbalyst/icon.svg'), 'file:///Users/me/proj/.nimbalyst/icon.svg');
-assert.equal(fileUrl('/Users/me/proj/', '/abs/elsewhere.png'), 'file:///abs/elsewhere.png');
+assert.equal(fileUrl('/home/demo/proj', '.nimbalyst/icon.svg'), 'file:///home/demo/proj/.nimbalyst/icon.svg');
+assert.equal(fileUrl('/home/demo/proj/', '/home/demo/proj/.nimbalyst/icon.svg'), 'file:///home/demo/proj/.nimbalyst/icon.svg');
 assert.equal(fileUrl(WIN, '.nimbalyst/icon.svg'), 'file:///H:/AI-Workhub/.nimbalyst/icon.svg');
 assert.equal(fileUrl('H:/AI-Workhub/', `.nimbalyst${BS}icon.svg`), 'file:///H:/AI-Workhub/.nimbalyst/icon.svg');
-assert.equal(fileUrl(WIN, `C:${BS}Shared${BS}logo.png`), 'file:///C:/Shared/logo.png');
 assert.equal(fileUrl(WIN, '/H:/AI-Workhub/.nimbalyst/icon.svg'), 'file:///H:/AI-Workhub/.nimbalyst/icon.svg');
+assert.equal(fileUrl(WIN, `h:${BS}ai-workhub${BS}icon.svg`), 'file:///H:/AI-Workhub/icon.svg');
 assert.equal(fileUrl(`${BS}${BS}srv${BS}share${BS}proj`, 'icon.svg'), 'file://srv/share/proj/icon.svg');
-assert.equal(fileUrl('/Users/me/my proj', 'icon 2.svg'), 'file:///Users/me/my%20proj/icon%202.svg'); ok('fileUrl handles POSIX, Windows and UNC paths');
+assert.equal(fileUrl('/home/demo/my proj', 'icon 2.svg'), 'file:///home/demo/my%20proj/icon%202.svg'); ok('fileUrl handles POSIX, Windows and UNC projects');
 assert.equal(isAbsolutePath('/x'), true); assert.equal(isAbsolutePath(`C:${BS}x`), true); assert.equal(isAbsolutePath('c:/x'), true);
 assert.equal(isAbsolutePath(`${BS}${BS}srv${BS}x`), true); assert.equal(isAbsolutePath('.nimbalyst/x'), false); assert.equal(isAbsolutePath('x:y'), false);
-assert.equal(resolveProjectPath(`H:${BS}p${BS}`, `a${BS}b.png`), 'H:/p/a/b.png'); ok('isAbsolutePath / resolveProjectPath');
+ok('isAbsolutePath');
+
+// ---- image paths must stay inside the project: look files come with repositories, so they may be someone else's
+assert.equal(projectRelativePath('/home/demo/proj', './.nimbalyst//a/../icon.png'), '.nimbalyst/icon.png');
+assert.equal(projectRelativePath('/home/demo/proj', '/home/demo/proj/.nimbalyst/icon.png'), '.nimbalyst/icon.png');
+assert.equal(projectRelativePath(`H:${BS}p${BS}`, `a${BS}b.png`), 'a/b.png');
+assert.equal(projectFilePath(`H:${BS}p${BS}`, `a${BS}b.png`), 'H:/p/a/b.png');
+for (const outside of [
+  '/etc/hosts', '/home/demo/proj-other/x.png', '/home/demo/PROJ/x.png', '../x.png', '.nimbalyst/../../x.png',
+  `${BS}${BS}evil.example${BS}share${BS}x.png`, '//evil.example/share/x.png', 'C:/Shared/logo.png', 'C:x.png', 'x.png:stream', '', '.', 'a/..',
+]) {
+  assert.equal(projectRelativePath('/home/demo/proj', outside), null, outside);
+  assert.equal(fileUrl('/home/demo/proj', outside), null, outside);
+}
+for (const outside of [`${BS}${BS}evil.example${BS}share${BS}x.png`, '//evil.example/share/x.png', `C:${BS}Shared${BS}logo.png`, `H:${BS}AI-Workhub-other${BS}x.png`, '/H:/other/x.png']) {
+  assert.equal(fileUrl(WIN, outside), null, outside);
+}
+assert.equal(fileUrl(`${BS}${BS}srv${BS}share${BS}proj`, '//srv/share/other/x.png'), null); ok('image paths outside the project are refused');
 
 console.log(`\n${n} passed`);
