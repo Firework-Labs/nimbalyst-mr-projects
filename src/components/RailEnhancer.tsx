@@ -40,6 +40,22 @@ function readItems(nav: HTMLElement): RailItem[] {
   return items;
 }
 
+/**
+ * Close a project through Nimbalyst's own handler. Before 0.83 each native item had
+ * a close button; since then closing is a middle-click on the item (or its context
+ * menu), which also asks before closing a project with streaming sessions.
+ */
+function closeNative(el: HTMLElement): void {
+  const legacy = el.querySelector<HTMLElement>('.project-rail-item-close');
+  if (legacy) {
+    legacy.click();
+    return;
+  }
+  el.querySelector<HTMLElement>('.project-rail-item-main')?.dispatchEvent(
+    new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1, buttons: 0 }),
+  );
+}
+
 function signature(items: RailItem[]): string {
   return JSON.stringify(items.map((i) => [i.path, i.name, i.active, i.badge, i.nativeColor]));
 }
@@ -129,13 +145,20 @@ export function RailEnhancer() {
         navObserver = new MutationObserver(schedule);
         navObserver.observe(nav, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-current', 'style', 'data-project-path', 'aria-label'], characterData: true });
       }
-      nav.classList.add('pt-native-hidden');
-      let host = nav.previousElementSibling as HTMLElement | null;
-      if (!host || host.dataset.ptRail !== '1') {
+      // Our rail lives inside the native nav, in place of its project list. Only the
+      // native list, divider and + are hidden, so whatever else Nimbalyst renders in
+      // the nav keeps showing: the org switcher above, and below, the global slot the
+      // navigation gutter portals the usage meters and account menu into (0.83+).
+      nav.classList.add('pt-hosting');
+      const anchor = nav.querySelector<HTMLElement>(':scope > .project-rail-projects');
+      let host = nav.querySelector<HTMLElement>(':scope > [data-pt-rail]');
+      if (!host) {
         host = document.createElement('div');
         host.dataset.ptRail = '1';
         host.className = 'pt-rail-host';
-        nav.parentElement?.insertBefore(host, nav);
+      }
+      if (anchor ? host.nextElementSibling !== anchor : host.parentElement !== nav) {
+        nav.insertBefore(host, anchor ?? nav.firstChild);
       }
       setContainer(host);
       const next = readItems(nav);
@@ -158,7 +181,7 @@ export function RailEnhancer() {
       bodyObserver.disconnect();
       navObserver?.disconnect();
       if (raf) cancelAnimationFrame(raf);
-      document.querySelector(NATIVE_NAV)?.classList.remove('pt-native-hidden');
+      document.querySelector(NATIVE_NAV)?.classList.remove('pt-hosting');
       document.querySelectorAll('[data-pt-rail]').forEach((e) => e.remove());
       getBridge()?.setOverride(null);
     };
@@ -362,7 +385,7 @@ export function RailEnhancer() {
               title={`Close ${item.name}`}
               onClick={(e) => {
                 e.stopPropagation();
-                item.el.querySelector<HTMLElement>('.project-rail-item-close')?.click();
+                closeNative(item.el);
               }}
             >
               ×

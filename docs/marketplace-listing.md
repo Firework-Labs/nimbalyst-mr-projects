@@ -49,12 +49,12 @@ The screenshots are rendered from the extension's real code on a replica of the 
 
 ## "Before you install" callout (also in README.md)
 
-> **Mr. Projects relies on Nimbalyst internals that are not part of the extension SDK.** The SDK has no API for the project rail, the left column or navigation, so Mr. Projects works with Nimbalyst's window directly. It hides Nimbalyst's project rail and shows its own in its place; every switch, close and add is still handled by Nimbalyst's hidden buttons. It inserts the poster at the top of the left column and hides Nimbalyst's thin project color strip there. It adds its button to the navigation gutter. Two buttons use Nimbalyst's internal app bridge (`window.electronAPI`), which extensions are not documented to use: **Open in Finder** calls `openInDefaultApp` (or `showInFinder`), and the **gutter button and the poster's gear** call `openAccountSettings` and then select the project settings page. If a Nimbalyst update changes any of this, the rail, poster or buttons can stop appearing or look wrong until Mr. Projects is updated; the two bridge buttons show a message with the manual path instead of failing silently. Disabling or uninstalling Mr. Projects brings back Nimbalyst's own rail. Last verified on Nimbalyst 0.77.5.
+> **Mr. Projects relies on Nimbalyst internals that are not part of the extension SDK.** The SDK has no API for the project rail, the left column or navigation, so Mr. Projects works with Nimbalyst's window directly. It shows its own project list inside Nimbalyst's rail in place of Nimbalyst's; every switch, close and add is still handled by Nimbalyst's hidden controls. It inserts the poster at the top of the left column and hides Nimbalyst's thin project color strip there. It adds its button to the navigation gutter. Two buttons use Nimbalyst's internal app bridge (`window.electronAPI`), which extensions are not documented to use: **Open in Finder** calls `openInDefaultApp` (or `showInFinder`), and the **gutter button and the poster's gear** call `openAccountSettings` and then select the project settings page. If a Nimbalyst update changes any of this, the rail, poster or buttons can stop appearing or look wrong until Mr. Projects is updated; the two bridge buttons show a message with the manual path instead of failing silently. Disabling or uninstalling Mr. Projects brings back Nimbalyst's own rail. Rail and gutter button verified on Nimbalyst 0.83.0; the rest last verified on 0.77.5.
 
 ## Requirements and compatibility
 
 - Nimbalyst with extensions enabled. Built against `@nimbalyst/extension-sdk` 0.5, manifest `apiVersion` 1.0.0.
-- Last verified in the app (probe extension) on Nimbalyst 0.77.5. On 0.79.1 the extension is enabled and loads; its UI was not re-verified there.
+- 0.5.3's rail and gutter button were checked in the app on Nimbalyst 0.83.0 (close ×, usage meters below the rail, gutter button next to Mr. Themes'). The poster and settings shortcuts were last verified with the probe extension on 0.77.5. 0.5.2 and earlier do not work fully on 0.83.
 - Per-project themes need Mr. Themes (`com.fireworklabs.theme-editor`). Without it, the rail and posters work and the theme setting shows an install hint.
 - Poster and tile images must be inside the project (the SDK has no file picker).
 - The folder button reads "Open in Finder" on macOS, "Open in Explorer" on Windows and "Open folder" elsewhere. Only macOS has been tested.
@@ -68,6 +68,5 @@ The screenshots are rendered from the extension's real code on a replica of the 
 
 - Ask Nimbalyst whether extensions may use `window.electronAPI` (or whether an SDK route for "open folder" and "open my settings page" is planned); the listing discloses it either way.
 - Confirm the category with Nimbalyst.
-- Re-verify on the current Nimbalyst release and update "Last verified on".
+- Re-verify the poster and settings shortcuts on the current Nimbalyst release (the rail and gutter button were checked on 0.83.0) and update "Last verified on".
 - Ask whether Nimbalyst wants `dist/` committed or builds from source. Today `dist/` is git-ignored and each GitHub release carries a prebuilt zip.
-- Optional: fix the stale-stylesheet bug in `ensureStyles()` (`src/styles.ts`) before a public release, so updates apply their CSS without a restart.

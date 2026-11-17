@@ -28,14 +28,16 @@ This file is shared, word for word except for paths, with the Mr. Themes reposit
 
 `.project-rail-item[data-project-path]` children, each with `button.project-rail-item-main[aria-label="Switch to project X"]`, optional `.project-rail-item-badge`, `.project-rail-item-close`. The active one has `.is-active`. Then `.project-rail-divider` and `.project-rail-add`. Only the active project is distinguishable ("open" projects are not marked separately).
 
+**Changed in 0.83.0** (read from the shipped renderer bundle, 2026-11-12). The nav's direct children are now: the org switcher, `div.project-rail-projects` (holding the items), `.project-rail-divider`, `button.project-rail-add`, and **`div.project-rail-global-items[data-testid=project-rail-global-items]`**. The navigation gutter portals its app-scoped indicators (Claude/Codex/Gemini usage, theme toggle, feedback) and the account menu into that last slot, so hiding the whole nav hides them too. Mr. Projects therefore puts its rail inside the nav, before `.project-rail-projects`, and hides only the list, divider and +. **`.project-rail-item-close` is gone**: an item closes on middle-click (`auxclick` with `button: 1` on `.project-rail-item-main`, which first asks to confirm if sessions are streaming) or from its right-click menu. Mr. Projects dispatches that `auxclick`.
+
 ## Navigation gutter
 
 `.navigation-gutter` has four `.nav-section` groups:
 
 - `.nav-content-modes`: files, agent, tracker, pr-review; each `div[data-gutter-item=<mode>] > .nav-mode-button-wrapper > button.nav-button[data-mode]`.
 - `.nav-quick-access`.
-- `.nav-extension-panels`: extension panels such as `com.fireworklabs.theme-editor.theme-library`, plus `terminal`; each `div[data-gutter-item=<id>] > button.nav-button` (36×36) with a `.material-symbols-outlined` span at 20px. Mr. Projects adds its gutter button by appending its own `div[data-gutter-item]` host here.
-- `.nav-settings`: voice-mode, claude-usage, codex-usage, extension-dev, trust-indicator, theme-toggle, feedback, account-inspector-trigger. There is no Settings gear in the gutter.
+- `.nav-extension-panels`: extension panels such as `com.fireworklabs.theme-editor.theme-library`, plus `terminal`; each `div[data-gutter-item=<id>] > button.nav-button` (36×36) with a `.material-symbols-outlined` span at 20px. Order (0.83.0): fullscreen extension panels, then sidebar panels, then `terminal`, then bottom panels, each re-sorted by the user's saved gutter order. Mr. Projects adds its own `div[data-gutter-item]` host right after Mr. Themes' item when that is shown (otherwise at the end), so the two sit together instead of around Terminal.
+- `.nav-settings`: voice-mode, claude-usage, codex-usage, extension-dev, trust-indicator, theme-toggle, feedback, account-inspector-trigger. There is no Settings gear in the gutter. Since 0.83.0, while the project rail is shown, the app-scoped ones (usage meters, theme-toggle, feedback) and the account menu render in the rail's `.project-rail-global-items` instead.
 
 ## Help tooltip
 

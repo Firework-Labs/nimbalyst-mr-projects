@@ -30,7 +30,7 @@ export function activate(context: ExtensionContext): void {
 export function deactivate(): void {
   getBridge()?.setOverride(null);
   uninstallProjectBridge();
-  document.querySelector('nav.project-rail')?.classList.remove('pt-native-hidden');
+  document.querySelector('nav.project-rail')?.classList.remove('pt-hosting');
   document.querySelectorAll('[data-pt-rail], [data-pt-dock], [data-pt-gutter]').forEach((e) => e.remove());
   removeStyles();
   setExtensionContext(null);

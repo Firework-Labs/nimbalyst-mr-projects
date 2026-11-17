@@ -1,9 +1,9 @@
 /**
  * A button in the navigation gutter (the 48px column between the project
  * rail and the left column) that opens Project Settings â€º Mr. Projects for
- * the active project. The gutter is Nimbalyst's; we append one host element
- * to its "extension panels" section and portal our button into it, styled
- * like the native nav-buttons.
+ * the active project. The gutter is Nimbalyst's; we add one host element to
+ * its "extension panels" section, right after Mr. Themes' button when present,
+ * and portal our button into it, styled like the native nav-buttons.
  */
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -16,6 +16,7 @@ export const TOOLTIP = { title: 'Mr. Projects', body: 'Uniquify project spacesâ€
 const GUTTER = '.navigation-gutter';
 const SECTION = '.nav-section.nav-extension-panels';
 const HOST_ATTR = 'data-pt-gutter';
+const THEMES_ITEM = '[data-gutter-item^="com.fireworklabs.theme-editor."]';
 
 export function GutterLink() {
   const [host, setHost] = useState<HTMLElement | null>(null);
@@ -37,12 +38,18 @@ export function GutterLink() {
         return;
       }
       let el = existing;
-      if (!el || el.parentElement !== section) {
-        el?.remove();
+      if (!el) {
         el = document.createElement('div');
         el.setAttribute(HOST_ATTR, '1');
         el.dataset.gutterItem = 'com.fireworklabs.project-theme.settings';
-        section.appendChild(el);
+      }
+      // Sit right after Mr. Themes' panel button when it is shown; otherwise at the end.
+      // Nimbalyst renders sidebar panels, Terminal and bottom panels after fullscreen
+      // panels like Mr. Themes, so appending alone leaves those in between.
+      const themes = section.querySelector<HTMLElement>(`:scope > ${THEMES_ITEM}`);
+      if (themes ? themes.nextElementSibling !== el : el.parentElement !== section) {
+        if (themes) themes.after(el);
+        else section.appendChild(el);
       }
       setHost(el);
     };

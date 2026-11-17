@@ -5,7 +5,7 @@ Everything the [README](../README.md) leaves out: features in full, the look fil
 Extension id: `com.fireworklabs.project-theme` (unchanged from the "Custom Project Themes" days, so installs and saved configuration carry over) · version 0.5.2
 Depends on: [Mr. Themes](https://github.com/Firework-Labs/nimbalyst-mr-themes) (`com.fireworklabs.theme-editor`) for per-project themes. Without it, the rail and poster features still work and the theme picker shows an install hint.
 
-> **Heads-up: Mr. Projects relies on Nimbalyst internals that are not part of the extension SDK.** It hides Nimbalyst's project rail and shows its own (Nimbalyst's hidden buttons still do every switch, close and add), inserts the poster at the top of the left column, and adds a gutter button. **Open in Finder** and the **settings shortcuts** (gutter button, poster gear) call Nimbalyst's internal app bridge, `window.electronAPI`, which extensions are not documented to use. A Nimbalyst update can make the rail, poster or buttons disappear or look wrong until Mr. Projects is updated; disabling or uninstalling it brings back Nimbalyst's own rail. Details in [Host hooks outside the SDK](#host-hooks-outside-the-sdk). Last verified on Nimbalyst 0.77.5.
+> **Heads-up: Mr. Projects relies on Nimbalyst internals that are not part of the extension SDK.** It shows its own project list inside Nimbalyst's rail in place of Nimbalyst's (Nimbalyst's hidden controls still do every switch, close and add), inserts the poster at the top of the left column, and adds a gutter button. **Open in Finder** and the **settings shortcuts** (gutter button, poster gear) call Nimbalyst's internal app bridge, `window.electronAPI`, which extensions are not documented to use. A Nimbalyst update can make the rail, poster or buttons disappear or look wrong until Mr. Projects is updated; disabling or uninstalling it brings back Nimbalyst's own rail. Details in [Host hooks outside the SDK](#host-hooks-outside-the-sdk). Rail and gutter button verified on Nimbalyst 0.83.0; the rest last verified on 0.77.5.
 
 ## What you get
 
@@ -83,7 +83,7 @@ npm run build
 npm test             # tests/model.test.ts: rail layout merge, look normalization, poster SVG, short-name wrap
 ```
 
-Install with the Extension Developer Kit's `extension_install` tool or Settings › Extensions › Install from folder.
+Install with the Extension Developer Kit's `extension_install` or `extension_reload` tool (turn on Settings › Advanced › Extension Dev Tools first). Nimbalyst 0.83 has no "Install from folder" menu item.
 
 Source layout: `src/types.ts` (look model, rail layout, normalization with 0.2 fallbacks), `src/poster.ts` (shapes, patterns, palettes, SVG generator), `src/heroPatterns.ts`, `src/store.ts` (context, cache, preferences, file IO, event bus, both bridges, host hooks), `src/components/RailEnhancer.tsx` (rail replacement with drag and drop and dividers), `PosterDock.tsx` (poster banner in the left column), `PosterFrame.tsx` (poster image plus the Sandboxed chip, shared by dock and preview), `GutterLink.tsx` (the gutter button), `ProjectThemeSettings.tsx`.
 

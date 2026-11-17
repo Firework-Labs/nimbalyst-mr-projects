@@ -16,9 +16,10 @@ npm test             # offline model tests
 ```
 
 - Build with `npm run build` via Bash. In unattended sessions the Developer Kit's `extension_build` and `extension_uninstall` MCP tools can raise a permission prompt that times out; `extension_install` and `extension_get_status` go through, and uninstall usually works on retry.
-- Install with the Developer Kit's `extension_install` tool, passing this repository's folder, or through Settings › Extensions › Install from folder.
+- Install with the Developer Kit's `extension_install` tool (or `extension_reload` to build and install), passing this repository's folder. The Developer Kit tools need Settings › Advanced › Extension Dev Tools turned on, and a new agent session afterwards. There is no "Install from folder" menu item on 0.83.
+- **Install from GitHub** downloads the `.nimext` (or `.zip`) asset of the repository's latest GitHub Release. It clones the source only when the repository commits `dist/`, which ours do not. A fix reaches GitHub installs only through a new release.
 - **Reinstall one extension per message.** On 2026-09-23, calling `extension_install` for Mr. Themes and Mr. Projects back-to-back in one message left every extension host component unmounted (no rail, no dock, no gutter button, no icon swap), although `activate()` ran, status said `loaded`, and no error was logged anywhere. Reinstalling one extension alone restored all of them. Verify with the probe after each install. It cost forty minutes the first time.
-- Injected stylesheets must be replaced on reinstall, or a hot reinstall keeps the previous version's CSS. Mr. Themes' `ensureStyles()` overwrites its `<style>` when the text differs. Mr. Projects' `ensureStyles()` still returns early when its `<style id>` exists, a known one-line fix that has not been made.
+- Injected stylesheets must be replaced on reinstall, or a hot reinstall keeps the previous version's CSS. Both extensions' `ensureStyles()` overwrite their `<style>` when the text differs (Mr. Projects since 0.5.3).
 - `get_renderer_debug_logs` is unavailable in the production build. `get_main_process_logs` (component `EXTENSION`) works.
 - Bash and other tool calls sometimes fail with "PreToolUse hook did not respond before its timeout". Re-issuing the same call has always worked.
 
@@ -33,7 +34,7 @@ npm test             # offline model tests
 
 ## Where Nimbalyst installs extensions
 
-`~/Library/Application Support/@nimbalyst/electron/extensions/` (observed on 0.79.1). Marketplace installs are copied folders (`manifest.json`, `dist/`, `screenshots/`). Dev installs (`extension_install`, Install from folder) are **symlinks to the source folder**, so moving or deleting the source folder breaks the installed extension: move first, then reinstall from the new place.
+`~/Library/Application Support/@nimbalyst/electron/extensions/` (observed on 0.79.1). Marketplace installs are copied folders (`manifest.json`, `dist/`, `screenshots/`). Dev installs (`extension_install`) are **symlinks to the source folder**, so moving or deleting the source folder breaks the installed extension: move first, then reinstall from the new place.
 
 ## Offline checks
 

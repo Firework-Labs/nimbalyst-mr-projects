@@ -1,10 +1,16 @@
 const STYLE_ID = 'pt-styles';
 
 export const CSS = `
-/* The native rail stays in the DOM (we mirror and delegate to it) but is hidden while ours is up. */
-nav.project-rail.pt-native-hidden { display: none !important; }
-.pt-rail-host { flex: none; height: 100%; display: flex; }
-.pt-rail { width: 56px; height: 100%; background: var(--nim-bg-secondary); border-right: 1px solid var(--nim-border); display: flex; flex-direction: column; align-items: center; padding: 12px 0 8px; gap: 6px; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; scrollbar-width: none; position: relative; }
+/* Our rail sits inside the native nav in place of its project list. The native items stay in
+   the DOM (we mirror and delegate to them) but are hidden; the org switcher and the global slot
+   (usage meters, account menu) are left alone. The nav takes our rail's width. */
+nav.project-rail.pt-hosting { width: auto; }
+nav.project-rail.pt-hosting > .project-rail-projects,
+nav.project-rail.pt-hosting > .project-rail-divider,
+nav.project-rail.pt-hosting > .project-rail-add { display: none !important; }
+.pt-rail-host { flex: 1 1 auto; min-height: 0; align-self: stretch; display: flex; justify-content: center; }
+nav.project-rail.pt-hosting .pt-rail { background: transparent; border-right: 0; padding-top: 0; }
+.pt-rail { width: 56px; height: auto; background: var(--nim-bg-secondary); border-right: 1px solid var(--nim-border); display: flex; flex-direction: column; align-items: center; padding: 12px 0 8px; gap: 6px; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; scrollbar-width: none; position: relative; }
 .pt-rail::-webkit-scrollbar { display: none; }
 .pt-rail.wide { width: 88px; }
 .pt-rail * { box-sizing: border-box; }
@@ -181,7 +187,12 @@ nav.project-rail.pt-native-hidden { display: none !important; }
 `;
 
 export function ensureStyles(): void {
-  if (document.getElementById(STYLE_ID)) return;
+  // Replace a stale sheet left by a previous version on hot reinstall.
+  const existing = document.getElementById(STYLE_ID);
+  if (existing) {
+    if (existing.textContent !== CSS) existing.textContent = CSS;
+    return;
+  }
   const el = document.createElement('style');
   el.id = STYLE_ID;
   el.textContent = CSS;
